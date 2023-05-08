@@ -1,0 +1,70 @@
+# Modify the given path for input and output files at the required positions. The path /home/sutripa/heatShock/ is mentioned as an example.
+rule all:
+    input:
+        "/home/sutripa/heatShock/read_count",
+# Quality-trimming, filtering and adapter-trimming of the raw Illumina reads using bbduk
+rule clean:
+# Provide raw illumina reads along with the path
+    input:
+        rawfile1='/home/sutripa/heatShock/{sample}R1.fastq',
+        rawfile2='/home/sutripa/heatShock/{sample}R2.fastq'
+    output:
+        clean1='/home/sutripa/heatShock/cln{sample}R1.fastq',
+        clean2='/home/sutripa/heatShock/cln{sample}R2.fastq'
+    shell:
+        "/home/sutripa/bbmap/bbduk.sh in1={input.rawfile1} in2={input.rawfile2} out1={output.clean1} out2={output.clean2} ftl=9 minlength=75 ref=/home/sutripa/heatShock/adapters.fasta.gz ktrim=r k=23 mink=11 hdist=1 tpe tbo"
+# Indexing of the reference genome using bowtie
+rule bowtie_build:
+# Provide reference genome with the path
+    input:
+        reference="/home/sutripa/heatShock/MLA_UU774new1.fna"
+    output:
+        touch('index.done'),
+    params:
+        index_prefix='genome',
+    shell:
+        "bowtie-build {input.reference} {params.index_prefix}"
+# Alignment of the reads to the indexed reference genome using bowtie aligner
+rule bowtie_align:
+# Input is the trimmed, filtered illumina reads and the indexed reference genome along with their path 
+    input:
+        idx= 'index.done',
+        fq1= '/home/sutripa/heatShock/cln{sample}R1.fastq',
+        fq2= '/home/sutripa/heatShock/cln{sample}R2.fastq'
+    output:
+        sam= '/home/sutripa/heatShock/cln{sample}.sam',
+    params:
+        index_prefix= 'genome'
+    shell:
+        "bowtie -q {params.index_prefix} -1 {input.fq1} -2 {input.fq2} -S {output.sam}"
+# conversion of the SAM file to BAM file
+rule samtobam:
+    input:
+        "/home/sutripa/heatShock/cln{sample}.sam"
+    output:
+        "/home/sutripa/heatShock/cln{sample}.bam"
+    shell:
+        "samtools view -S -b {input} > {output}"
+# sorting of the BAM file according to the genomic coordinates        
+rule sorting:
+    input:
+        "/home/sutripa/heatShock/cln{sample}.bam"
+    output:
+        "/home/sutripa/heatShock/cln{sample}sorted.bam"
+    shell:
+        "samtools sort {input} > {output}
+# Read summarization through counting mapped reads for genomic features (CDS for example) using featurecounts
+rule featurecounts:
+    input:
+# Provide genome annotation file with path
+        an= "/home/sutripa/heatShock/genomic.gff",
+# Raw read files for different conditions can be added in sample as = ['X1_Y1_', 'X2_Y2_']
+        sort= expand("/home/sutripa/heatShock/cln{sample}sorted.bam", sample= ['6_B_', '24_B_', 'Ct_B_']),
+    output:
+        "/home/sutripa/heatShock/read_count"
+    shell:
+        "featureCounts -p -T 4 -t CDS -g ID -F GFF -a {input.an} {input.sort} -o {output}"        
+        
+        
+        
+       
