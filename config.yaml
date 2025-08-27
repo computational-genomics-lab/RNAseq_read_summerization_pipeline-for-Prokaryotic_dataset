@@ -1,0 +1,13 @@
+workdir: "/home/sutripa/heatShock"
+
+reference: "/home/sutripa/heatShock/MLA_UU774new1.fna"
+annotation: "/home/sutripa/heatShock/genomic.gff"
+adapters: "/home/sutripa/heatShock/adapters.fasta.gz"
+
+samples:
+  - "6_A_"
+  - "24_A_"
+  - "Ct_A_"
+
+output:
+  counts: "read_count"
