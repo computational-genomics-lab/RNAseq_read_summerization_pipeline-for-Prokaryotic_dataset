@@ -1,4 +1,4 @@
-configfile: "pro_config.yaml"
+configfile: "config.yaml"
 
 # Define paths from config
 WORKDIR   = config["workdir"]
