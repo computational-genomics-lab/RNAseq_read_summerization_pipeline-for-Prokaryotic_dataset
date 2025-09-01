@@ -1,13 +1,25 @@
-workdir: "/home/sutripa/heatShock"
+# Directory for inputs and outputs
+workdir: "/home/sutripa/rnaseq_pipeline"
 
-reference: "/home/sutripa/heatShock/MLA_UU774new1.fna"
-annotation: "/home/sutripa/heatShock/genomic.gff"
-adapters: "/home/sutripa/heatShock/adapters.fasta.gz"
 
+# Raw samples (prefix before R1/R2)
 samples:
   - "6_A_"
-  - "24_A_"
   - "Ct_A_"
+
+# Reference genome and annotation
+reference: "/home/sutripa/rnaseq_pipeline/MLA_UU774new1.fna"
+annotation: "/home/sutripa/rnaseq_pipeline/genomic.gff"
+
+# Adapter file
+adapters: "/home/sutripa/Tools/adapters.fasta.gz"
 
 output:
   counts: "read_count"
+
+featurecounts:
+  feature_type: "CDS"     # corresponds to -t
+  attribute: "ID"         # corresponds to -g
+  format: "GFF"           # corresponds to -F
+  paired: true            # corresponds to -p
+
