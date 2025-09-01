@@ -1,4 +1,4 @@
-configfile: "config.yaml"
+configfile: "pro_config.yaml"
 
 # Define paths from config
 WORKDIR   = config["workdir"]
@@ -76,6 +76,12 @@ rule featurecounts:
         sort = expand(f"{WORKDIR}/cln{{sample}}sorted.bam", sample=SAMPLES)
     output:
         READ_COUNT
+    params:
+        feature_type = config["featurecounts"]["feature_type"],
+        attribute = config["featurecounts"]["attribute"],
+        format = config["featurecounts"]["format"],
+        paired = "-p" if config["featurecounts"]["paired"] else ""
     shell:
-        "featureCounts -p -T 4 -t CDS -g ID -F GFF "
+        "featureCounts {params.paired} -T 4 "
+        "-t {params.feature_type} -g {params.attribute} -F {params.format} "
         "-a {input.an} {input.sort} -o {output}"
